@@ -101,12 +101,18 @@ Now, get the context and see the * pointer
 ```
 kubectl config get-contexts
 ```
-Now Create deployment and see if user is able to create
+5. Now, Create deployment and see if user is able to create
 ```
 kubectl create deployment my-app --image nginx --replicas=3
 ```
 Error message:
 error: failed to create deployment: deployments.apps is forbidden: User "amol" cannot create resource "deployments" in API group "apps" in the namespace "default"
+
+
+6. To see kubeconfic
+```
+cat ~/.kube/config
+```
 
 ## Merging multiple KubeConfig files
 ```

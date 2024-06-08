@@ -153,5 +153,23 @@ drain node command:
 ```
 k drain node01 --ignore-daemonsets
 ```
+create deployment and drain the node
+```
+kubectl create deploy nginx --image nginx --replicas 3
+---
+show labels
+```
+kubectl get deploy nginx --show-labels
+```
 
 ERROR: `error when evicting pods/"nginx-bf5d5cf98-h9b2h" -n "default" (will retry after 5s): Cannot evict pod as it would violate the pod's disruption budget.`
+
+
+Update nginx image
+```
+kubectl set image deployment/nginx nginx=nginx:1.16.1
+```
+to see pods rolling updates
+```
+kubectl get pods -w
+```

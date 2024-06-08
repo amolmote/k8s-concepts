@@ -136,6 +136,7 @@ ERROR:
 ##
 ### PodDisruptionBudget
 ##
+Pod disruption budget means you can set the min number of pods available or max number of pod unavailability using the label. this helps during the rolling update, and restrict nodes to evict the pods.(example we can not drain the nodes fully this makes sure application will be accessible to the users all time.
 
 ```
 apiVersion: policy/v1
@@ -148,3 +149,9 @@ spec:
     matchLabels:
       app: nginx
 ```
+drain node command:
+```
+k drain node01 --ignore-daemonsets
+```
+
+ERROR: `error when evicting pods/"nginx-bf5d5cf98-h9b2h" -n "default" (will retry after 5s): Cannot evict pod as it would violate the pod's disruption budget.`

@@ -260,3 +260,96 @@ result can be seen below, due to its high priority scheduled the evict the low p
 ```
 high-priority-pod           1/1     Running             0          55s
 ```
+
+
+### Node Affinity:
+Scheduling technique of workload on a particular nodes. Affinity - what we want, and on which basis we want to schedule the workload. below is the pod spec section that shows affinity.
+
+```
+spec:
+  containers:
+  - name: my-container
+    image: nginx
+  affinity:
+      nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+              - matchExpressions:
+                - key: "label-on-the-node"
+                  operator: In
+                  value: "value-of-above-label"
+          preferedDuringSchedulingIgnoredDuringExecution:   # If above label matched with more than one nodes then this will preferred by scheduler.
+               nodeSelectorTerms:
+               - matchExpressions:
+                 - key: "another-label-on-node"
+                   operator: In
+                   value: "value-of-label"
+```
+
+Demo:
+```
+apiVersion: v1
+kind: Pod
+metadata:
+  name: mypod
+spec:
+  containers:
+  - name: mycontainer
+    image: nginx
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: "topology.kubernetes.io/region"
+            operator: In
+            values:
+            - "us-east-1"
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - weight: 1
+        preference:
+          matchExpressions:
+          - key: "disktype"
+            operator: In
+            values:
+            - "ssd"
+```
+
+above pod will remain in pending state as it will not find above labels on the nodes.
+
+
+`controlplane $ k get pods
+NAME    READY   STATUS    RESTARTS   AGE
+mypod   0/1     Pending   0          21s`
+
+Create labels:
+```
+k label node node01 topology.kubernetes.io/region=us-east-1
+```
+Now, the above pod will run on the node01.
+
+demo: 2 
+delete the above pod.
+```
+kubectl delete pod mypod
+```
+apply same label for controlplane as well
+```
+k label node controlplane topology.kubernetes.io/region=us-east-1
+```
+create the label of preferred affinity section for controlplane
+```
+k label node controlplane disktype=ssd
+```
+apply the mypod manifest again and create pod
+```
+k get pods -o wide
+```
+pod will be scheduled on controlplane this time, as it checked preferred section now
+
+Result:
+
+`controlplane $ k get pods -o wide
+NAME    READY   STATUS    RESTARTS   AGE   IP            NODE           NOMINATED NODE   READINESS GATES
+mypod   1/1     Running   0          14s   192.168.0.4   controlplane   <none>           <none>
+`

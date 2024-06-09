@@ -353,3 +353,85 @@ Result:
 NAME    READY   STATUS    RESTARTS   AGE   IP            NODE           NOMINATED NODE   READINESS GATES
 mypod   1/1     Running   0          14s   192.168.0.4   controlplane   <none>           <none>
 `
+
+### Taints and Tolerations
+node affinity attracts the pods to the node where as taint restricts the pod to get scheduled on the nodes. only pod having the tolerations can be scheduled on the node on which we applied the taint.
+
+first, disable the scheduling on controlplane
+```
+k cordon controlplane
+```
+### NoSchedule Effect:
+Strictly restrict the pod to schedule on node which has the node.
+
+
+apply taint on node01
+```
+kubectl taint node node01 app=demo:NoSchedule
+```
+
+create pod with no tolerations
+```
+k run nginx --image nginx
+```
+
+Result due to no tolerations on pod:
+
+`controlplane $ k get pods -o wide
+NAME    READY   STATUS    RESTARTS   AGE   IP       NODE     NOMINATED NODE   READINESS GATES
+nginx   0/1     Pending   0          44s   <none>   <none>   <none>           <none>`
+
+now create pod with tolerations:
+```
+apiVersion: v1
+kind: Pod
+metadata:
+  creationTimestamp: null
+  labels:
+    run: demo
+  name: demo
+spec:
+  tolerations:
+  - key: "app"
+    operator: "Equal"
+    value: "demo"
+    effect: "NoSchedule"
+  containers:
+  - image: nginx
+    name: demo
+    resources: {}
+  dnsPolicy: ClusterFirst
+  restartPolicy: Always
+status: {}
+```
+now you can observe it is scheduled on the node01.
+
+
+
+### PreferNoSchedule
+remove the existing taint of node01
+```
+kubectl taint nodes node01 app-
+```
+apply taint with effect PreferNoSchedule
+```
+k run nginx --image nginx
+```
+k taint node node01 app=demo:PreferNoSchedule
+```
+create pod without toleration and see the result:
+```
+k run nginx --image nginx
+
+### NoExecute
+
+Apply taint on node01
+
+```
+k taint node node01 app=demo:NoExecute
+```
+
+Now you can see the executing pod which does not have this toleration will evict.
+
+
+

@@ -409,6 +409,10 @@ now you can observe it is scheduled on the node01.
 
 
 ### PreferNoSchedule
+Even if pod does not have any toleration and if scheduler will not able to find any node to schedule the pod then it will prefer the node which has toleration effect as PreferNoSchedule and will schedule the pod.
+
+
+
 remove the existing taint of node01
 ```
 kubectl taint nodes node01 app-
@@ -417,11 +421,13 @@ apply taint with effect PreferNoSchedule
 ```
 k run nginx --image nginx
 ```
+```
 k taint node node01 app=demo:PreferNoSchedule
 ```
 create pod without toleration and see the result:
 ```
 k run nginx --image nginx
+```
 
 ### NoExecute
 
